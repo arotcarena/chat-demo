@@ -1,0 +1,32 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: always
+    user: "node"
+    working_dir: /home/node/app
+    volumes:
+      - ./frontend/application:/home/node/app
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      NPM_CONFIG_LOGLEVEL: info
+    command: ["bash", "-lc", "pnpm install && pnpm dev --host 0.0.0.0"]
+
+  ws:
+    build:
+      context: ./ws
+    restart: always
+    user: "node"
+    working_dir: /home/node/app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ws/application:/home/node/app
+      - ./.env:/home/node/app/.env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      NPM_CONFIG_LOGLEVEL: info
+    command: ["node", "server.js"]
