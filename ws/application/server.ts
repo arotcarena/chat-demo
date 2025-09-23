@@ -1,22 +1,28 @@
-const http = require('http');
-const { Server } = require('socket.io');
+import express from 'express';
+import type { Request, Response } from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
-let messages = [];
+// routes
+import userRoutes from './routes/users.ts';
 
-// Serveur HTTP "nu"
-const httpServer = http.createServer((req, res) => {
-  console.log('🌐 Requête reçue:', req.method, req.url);
-  console.log('📋 Headers:', req.headers);
-  
-  // Laisser Socket.IO gérer les requêtes
-  if (req.url.startsWith('/socket.io/')) {
-    // Socket.IO gérera cette requête
-    return;
-  }
-  
-  res.writeHead(404);
-  res.end('Not Found');
+let messages: string[] = [];
+
+// Application Express
+const app = express();
+
+// Middleware pour parser JSON
+app.use(express.json());
+
+// routes
+app.use('/api/users', userRoutes);
+
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'Server is running' });
 });
+
+// Serveur HTTP avec Express
+const httpServer = createServer(app);
 
 // Instance Socket.IO
 const io = new Server(httpServer, {
@@ -31,16 +37,15 @@ const io = new Server(httpServer, {
 
 // Gestion de la connexion WebSocket
 io.on('connection', (socket) => {
-
   socket.emit('messages', messages);
   
-  socket.on('submit_message', (message) => {
+  socket.on('submit_message', (message: string) => {
     messages.push(message);
     io.emit('message', message);
   });
 
   socket.on('clear_messages', () => {
-    messages = []
+    messages = [];
     io.emit('messages', []);
   });
 
