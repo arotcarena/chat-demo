@@ -16,6 +16,7 @@ export const Chat = ({
   initialMessages,
   conversationId,
 }: Props) => {
+  console.log(conversationId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState<string>('');
 

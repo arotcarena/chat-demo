@@ -23,7 +23,7 @@ export const Conversation = ({
 }: Props) => {
 
     const [messages, setMessages] = useState<Message[]>([]);
-    const [conversationId, setConversationId] = useState<number>(0);
+    const [conversationId, setConversationId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     useEffect(() => {
         const fetchMessages = async () => {
@@ -32,7 +32,9 @@ export const Conversation = ({
                 const response = await fetch(`${import.meta.env.VITE_API_URL}/api/messages?first_user_id=${me.id}&second_user_id=${user.id}`);
                 const data = await response.json();
                 setMessages(data.messages);
-                setConversationId(data.conversation_id);
+                if (conversationId === null) {
+                    setConversationId(data.conversation_id);
+                }
             } catch (error) {
                 console.error(error);
             }
