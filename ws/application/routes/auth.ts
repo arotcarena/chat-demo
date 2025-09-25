@@ -1,16 +1,28 @@
 import express from 'express';
-import type { Request, Response } from 'express';
+import type { Request, Response, Router } from 'express';
 import { prisma } from '../prisma/prisma-client.ts';
 import { verifyPassword } from '../services/password-hasher.ts';
 import { createJwt, verifyJwt } from '../services/jwt-manager.ts';
 import { hashPassword } from '../services/password-hasher.ts';
 
-const router: any = express.Router();
+type LoginBody = {
+  username?: string;
+  password?: string;
+};
 
-router.post('/login', async (req: Request, res: Response) => {
-    console.log(req.body);
+type LoginRequest = Request<unknown, unknown, LoginBody>;
+
+const router: Router = express.Router();
+
+router.post('/login', async (req: LoginRequest, res: Response) => {
+  console.log(req.body);
   const { username, password } = req.body;
-  const user = await prisma.user.findUnique({
+
+  if (typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  const user = await prisma.user.findFirst({
     where: { username },
   });
   if (!user) {

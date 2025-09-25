@@ -27,7 +27,12 @@ export const Login = () => {
         body: JSON.stringify(formData)
       });
       const data = await response.json();
-      console.log(data);
+      if (data.token) {
+        localStorage.setItem('auth-token', data.token);
+        window.location.reload();
+      } else {
+        throw new Error('error');
+      }
     } catch (e) {
       setError('Identifiants invalides');
     }

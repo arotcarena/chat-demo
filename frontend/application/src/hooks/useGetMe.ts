@@ -18,7 +18,10 @@ export const useGetMe = () => {
       return;
     }
     const data = await response.json();
-    setMe(data);
+    setMe({
+      id: data.userId,
+      username: data.username
+    });
   }
 
   useEffect(() => {

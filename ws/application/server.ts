@@ -7,8 +7,16 @@ import cors from 'cors';
 // routes
 import userRoutes from './routes/users.ts';
 import authRoutes from './routes/auth.ts';
+import messageRoutes from './routes/messages.ts';
+import { prisma } from './prisma/prisma-client.ts';
 
-let messages: string[] = [];
+type Message = {
+  id: number;
+  content: string;
+  created_at?: string;
+  sender_id: number;
+  receiver_id: number;
+}
 
 // Application Express
 const app = express();
@@ -26,6 +34,7 @@ app.use(express.json());
 // routes
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/messages', messageRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Server is running' });
@@ -48,16 +57,25 @@ const io = new Server(httpServer, {
 
 // Gestion de la connexion WebSocket
 io.on('connection', (socket) => {
-  socket.emit('messages', messages);
-  
-  socket.on('submit_message', (message: string) => {
-    messages.push(message);
-    io.emit('message', message);
-  });
+  socket.on('submit_message', async (message: Message, conversationId: number) => {
+    try {
+      // Créer le message en base de données
+      const createdMessage = await prisma.message.create({
+        data: {
+          content: message.content,
+          sender_id: message.sender_id,
+          receiver_id: message.receiver_id,
+          conversation_id: conversationId,
+          created_at: new Date().toISOString(),
+        }
+      });
 
-  socket.on('clear_messages', () => {
-    messages = [];
-    io.emit('messages', []);
+      // Émettre le message avec l'ID généré par la base de données
+      io.emit('message_' + conversationId, createdMessage);
+    } catch (error) {
+      console.error('Erreur lors de la création du message:', error);
+      socket.emit('message_error', { error: 'Failed to save message' });
+    }
   });
 
   socket.on('disconnect', () => {
