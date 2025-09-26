@@ -1,6 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router"
+import { useAtomValue } from "jotai";
+import { meAtom } from "../jotai/atoms";
 
 export const Header = () => {
+    const me = useAtomValue(meAtom);
     const navigate = useNavigate()
 
     const handleLogout = () => {
@@ -33,12 +36,17 @@ export const Header = () => {
                     >
                         À propos
                     </Link>
-                    <button 
-                        className="bg-red-500 px-6 text-white hover:bg-red-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" 
-                        onClick={handleLogout}
-                    >
-                        Déconnexion
-                    </button>
+                    {me && (
+                        <>
+                            <span className="font-bold">{me.username}</span>
+                            <button 
+                                className="bg-red-500 px-6 text-white hover:bg-red-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" 
+                                onClick={handleLogout}
+                            >
+                                Déconnexion
+                            </button>
+                        </>
+                    )}
                     </div>
                 </div>
                 </div>

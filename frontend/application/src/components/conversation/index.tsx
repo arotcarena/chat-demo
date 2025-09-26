@@ -41,7 +41,7 @@ export const Conversation = ({
         <div className="h-full py-12">
             <div className="flex gap-12">
                 <Link className="bg-blue-500 px-6 text-white hover:bg-blue-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" to="/">Retour</Link>
-                <h1 className="text-2xl font-medium text-center">{interlocutor?.username}</h1>
+                <h1 className="text-2xl font-medium text-center">{interlocutorUsername}</h1>
             </div>
             {
                 isLoading || !interlocutor ? (
