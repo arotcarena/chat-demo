@@ -1,6 +1,13 @@
-import { Link } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 
 export const Header = () => {
+    const navigate = useNavigate()
+
+    const handleLogout = () => {
+        localStorage.removeItem('auth-token')
+        navigate({ to: '/login' })
+    }
+
     return (
         <header>
             <nav className="bg-white shadow-sm border-b">
@@ -26,6 +33,12 @@ export const Header = () => {
                     >
                         À propos
                     </Link>
+                    <button 
+                        className="bg-red-500 px-6 text-white hover:bg-red-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" 
+                        onClick={handleLogout}
+                    >
+                        Déconnexion
+                    </button>
                     </div>
                 </div>
                 </div>
