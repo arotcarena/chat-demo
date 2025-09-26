@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Login } from '../auth/login'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ChatHome } from '../features/chat-home'
 import { useGetMe } from '../hooks/useGetMe'
+import { useEffect } from 'react'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -9,30 +9,37 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const me = useGetMe()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (me === false) {
+        navigate({ to: '/login' })
+    }
+  }, [me, navigate])
   
   const handleLogout = () => {
     localStorage.removeItem('auth-token')
-    window.location.reload()
+    navigate({ to: '/login' })
   }
 
-  if (me) {
-    return (
-      <div className="flex flex-col h-full gap-2">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Bienvenue, {me.username}!</h1>
-            <button 
-              className="bg-red-500 px-6 text-white hover:bg-red-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" 
-              onClick={handleLogout}
-            >
-              Déconnexion
-            </button>
-          </div>
-          <ChatHome me={me} />
+  if (!me) {
+    return null
+  }
+
+  return (
+    <div className="flex flex-col h-full gap-2">
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Bienvenue, {me.username}!</h1>
+          <button 
+            className="bg-red-500 px-6 text-white hover:bg-red-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" 
+            onClick={handleLogout}
+          >
+            Déconnexion
+          </button>
         </div>
+        <ChatHome me={me} />
       </div>
-    )
-  }
-
-  return <Login />
+    </div>
+  )
 }

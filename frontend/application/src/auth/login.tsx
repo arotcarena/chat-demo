@@ -8,7 +8,11 @@ const schema = z.object({
   password: z.string()
 });
 
-export const Login = () => {
+type LoginProps = {
+  onLoginSuccess?: () => void;
+};
+
+export const Login = ({ onLoginSuccess }: LoginProps) => {
 
   const { register, handleSubmit } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema)
@@ -29,7 +33,7 @@ export const Login = () => {
       const data = await response.json();
       if (data.token) {
         localStorage.setItem('auth-token', data.token);
-        window.location.reload();
+        onLoginSuccess?.();
       } else {
         throw new Error('error');
       }
