@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import type { User } from "../hooks/useGetMe"
 import { Chat } from "./chat";
+import { Link } from "@tanstack/react-router";
+import type { User } from "../../hooks/useGetMe";
+import { useAuthMe } from "../../jotai/atoms";
 
 type Props = {
-    me: User;
-    user: User;
-    onReturn: () => void;
+    interlocutorUsername: string;
 }
 
 export type Message = {
@@ -17,40 +17,46 @@ export type Message = {
 };
 
 export const Conversation = ({
-    me,
-    user,
-    onReturn
+    interlocutorUsername,
 }: Props) => {
+    const me = useAuthMe();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [conversationId, setConversationId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [interlocutor, setInterlocutor] = useState<User | null>(null);
+
     useEffect(() => {
-        const fetchMessages = async () => {
+        const fetchInfos = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/messages?first_user_id=${me.id}&second_user_id=${user.id}`);
-                const data = await response.json();
-                setMessages(data.messages);
+                const interlocutorResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${interlocutorUsername}`);
+                const interlocutorData = await interlocutorResponse.json();
+                setInterlocutor(interlocutorData);
+
+                const messagesResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/messages?first_user_id=${me.id}&second_user_id=${interlocutorData.id}`);
+                const messagesData = await messagesResponse.json();
+                setMessages(messagesData.messages);
                 if (conversationId === null) {
-                    setConversationId(data.conversation_id);
+                    setConversationId(messagesData.conversation_id);
                 }
             } catch (error) {
                 console.error(error);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
-        fetchMessages();
-    }, []);
+        fetchInfos();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="h-full py-12">
             <div className="flex gap-12">
-                <button className="bg-blue-500 px-6 text-white hover:bg-blue-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" onClick={onReturn}>Retour</button>
-                <h1 className="text-2xl font-medium text-center">{user.username}</h1>
+                <Link className="bg-blue-500 px-6 text-white hover:bg-blue-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" to="/">Retour</Link>
+                <h1 className="text-2xl font-medium text-center">{interlocutor?.username}</h1>
             </div>
             {
-                isLoading ? (
+                isLoading || !interlocutor ? (
                     <div className="flex flex-col gap-6">
                         <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
                         <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
@@ -60,7 +66,7 @@ export const Conversation = ({
                     </div>
                 ) : (
                     conversationId && (
-                        <Chat me={me} user={user} initialMessages={messages} conversationId={conversationId} />
+                        <Chat interlocutor={interlocutor} initialMessages={messages} conversationId={conversationId} />
                     )
                 )
             }

@@ -9,7 +9,9 @@ function LoginPage() {
   const navigate = useNavigate()
 
   const handleLoginSuccess = () => {
-    navigate({ to: '/' })
+    setTimeout(() => {
+      navigate({ to: '/' })
+    }, 100)
   }
 
   return <Login onLoginSuccess={handleLoginSuccess} />

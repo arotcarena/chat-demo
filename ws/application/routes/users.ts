@@ -13,4 +13,13 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/:username', async (req: Request, res: Response) => {
+  try {
+    const user = await prisma.user.findFirst({ where: { username: req.params.username } });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
 export default router;

@@ -1,4 +1,6 @@
+import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
+import { meAtom } from "../jotai/atoms";
 
 export type User = {
     id: number;
@@ -6,7 +8,7 @@ export type User = {
 }
 
 export const useGetMe = () => {
-  const [me, setMe] = useState<User | null | false>(null);
+  const [me, setMe] = useAtom(meAtom);
 
   const fetchMe = async () => {
     try {

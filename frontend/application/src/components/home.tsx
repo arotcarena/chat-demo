@@ -1,38 +1,24 @@
-import { useState } from "react";
 import type { User } from "../hooks/useGetMe";
 import { useGetUsers } from "../hooks/useGetUsers";
-import { Conversation } from "./conversation";
+import { useAuthMe } from "../jotai/atoms";
+import { useNavigate } from "@tanstack/react-router";
 
-type Props = {
-  me: User;
-}
-
-export const ChatHome = ({
-  me
-}: Props) => {
-  const [page, setPage] = useState<'home' | 'conversation'>('home');
+export const Home = () => {
+  const me = useAuthMe();
+  const navigate = useNavigate();
 
   const { users, isLoading } = useGetUsers();
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const handleSelectUser = (user: User) => {
-    setPage('conversation');
-    setSelectedUser(user);
+    navigate({ to: `/conversation/${user.username}` });
   };
-
-  const handleReturn = () => {
-    setPage('home');
-    setSelectedUser(null);
-  };
-
-  if (page === 'conversation' && selectedUser) {
-    return (
-      <Conversation me={me} user={selectedUser} onReturn={handleReturn} />
-    )
-  }
 
   return (
-    <>
+    <div className="flex flex-col h-full gap-2">
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Bienvenue, {me.username}!</h1>
+        </div>
         <h1 className="my-6 text-2xl font-medium">Choisissez un utilisateur pour commencer une conversation</h1>
         {
             isLoading ? (
@@ -45,6 +31,7 @@ export const ChatHome = ({
                 ))
             )
         }
-    </>
+      </div>
+    </div>
   )
 }

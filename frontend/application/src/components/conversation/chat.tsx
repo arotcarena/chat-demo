@@ -1,22 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { socket } from '../main'
-import type { User } from "../hooks/useGetMe";
-import type { Message } from "./conversation";
+import { socket } from '../../main'
+import type { User } from "../../hooks/useGetMe";
+import type { Message } from ".";
+import { useAuthMe } from "../../jotai/atoms";
 
 type Props = {
-  me: User;
-  user: User;
+  interlocutor: User;
   initialMessages: Message[];
   conversationId: number;
 }
 
 export const Chat = ({
-  me,
-  user,
+  interlocutor,
   initialMessages,
   conversationId,
 }: Props) => {
-  console.log(conversationId);
+  const me = useAuthMe();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState<string>('');
 
@@ -41,7 +40,7 @@ export const Chat = ({
     socket.emit('submit_message', {
       content: inputMessage,
       sender_id: me.id,
-      receiver_id: user.id,
+      receiver_id: interlocutor.id,
       conversation_id: conversationId,
     }, conversationId);
     setInputMessage('');
