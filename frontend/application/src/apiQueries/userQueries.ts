@@ -5,3 +5,7 @@ export const getUsers = async (): Promise<User[]> => {
     const response = await baseQuery<User[]>('/api/users', {}, 'GET');
     return response;
 }
+
+export const getUserByUsername = async (username: string): Promise<User> => {
+    return baseQuery<User>(`/api/users/${username}`, {}, 'GET');
+}

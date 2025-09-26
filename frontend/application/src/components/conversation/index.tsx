@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
 import { Chat } from "./chat";
 import { Link } from "@tanstack/react-router";
-import type { User } from "../../hooks/useGetMe";
 import { useAuthMe } from "../../jotai/atoms";
+import { useQuery } from "@tanstack/react-query";
+import { getUserByUsername } from "../../apiQueries/userQueries";
+import { getMessages } from "../../apiQueries/messageQueries";
 
 type Props = {
     interlocutorUsername: string;
@@ -21,33 +22,20 @@ export const Conversation = ({
 }: Props) => {
     const me = useAuthMe();
 
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [conversationId, setConversationId] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [interlocutor, setInterlocutor] = useState<User | null>(null);
+    const { data: interlocutor, isLoading: isLoadingInterlocutor } = useQuery({
+        queryKey: ['user', interlocutorUsername],
+        queryFn: () => getUserByUsername(interlocutorUsername),
+    });
 
-    useEffect(() => {
-        const fetchInfos = async () => {
-            setIsLoading(true);
-            try {
-                const interlocutorResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${interlocutorUsername}`);
-                const interlocutorData = await interlocutorResponse.json();
-                setInterlocutor(interlocutorData);
+    const { data: messagesData, isLoading: isLoadingMessages } = useQuery({
+        queryKey: ['messages', me.id, interlocutor?.id],
+        queryFn: () => getMessages(me.id, interlocutor!.id),
+        enabled: !!interlocutor,
+    });
 
-                const messagesResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/messages?first_user_id=${me.id}&second_user_id=${interlocutorData.id}`);
-                const messagesData = await messagesResponse.json();
-                setMessages(messagesData.messages);
-                if (conversationId === null) {
-                    setConversationId(messagesData.conversation_id);
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchInfos();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const messages = messagesData?.messages || [];
+    const conversationId = messagesData?.conversation_id || null;
+    const isLoading = isLoadingInterlocutor || isLoadingMessages;
 
     return (
         <div className="h-full py-12">
