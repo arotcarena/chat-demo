@@ -8,6 +8,7 @@ services:
     working_dir: /home/node/app
     volumes:
       - ./frontend/application:/home/node/app
+      - ./.env:/home/node/app/.env
     ports:
       - "5173:5173"
     environment:
@@ -29,4 +30,26 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       NPM_CONFIG_LOGLEVEL: info
-    command: ["node", "server.js"]
+    command: ["pnpm", "dev"]
+
+  database:
+    image: mysql:8.1.0
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+    volumes:
+      - database_volume:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  database_volume:
