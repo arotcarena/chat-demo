@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import { meAtom } from "../jotai/atoms";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { LogOutIcon, User2Icon, UserCircle2Icon, UserCircleIcon, UserIcon } from "lucide-react";
+import { LogOutIcon, UserCircleIcon } from "lucide-react";
 
 export const Header = ({ className }: { className?: string }) => {
     const me = useAtomValue(meAtom);
@@ -16,7 +16,8 @@ export const Header = ({ className }: { className?: string }) => {
 
     return (
         <header className={cn(
-            'bg-white border-b border-gray-50 shadow-xs shadow-gray-100',
+            'fixed inset-x-0 top-0 z-20 backdrop-blur-sm bg-white/80',
+            'border-b border-gray-50 shadow-xs shadow-gray-100',
             className
         )}>
             <nav>

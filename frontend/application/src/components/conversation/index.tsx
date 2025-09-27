@@ -4,6 +4,13 @@ import { useAuthMe } from "../../jotai/atoms";
 import { useQuery } from "@tanstack/react-query";
 import { getUserByUsername } from "../../apiQueries/userQueries";
 import { getMessages } from "../../apiQueries/messageQueries";
+import { PageContainer } from "../ui/page-container";
+import { PageHeader } from "../ui/page-header";
+import { PageTitle } from "../ui/page-title";
+import { PageContent } from "../ui/page-content";
+import { ArrowLeftIcon, UserCircleIcon } from "lucide-react";
+import { Button } from "../ui/button";
+import { useState } from "react";
 
 type Props = {
     interlocutorUsername: string;
@@ -32,26 +39,38 @@ export const Conversation = ({
     const isLoading = isLoadingInterlocutor || isLoadingMessages;
 
     return (
-        <div className="h-full flex flex-col">
-            <div className="flex-none flex gap-12 py-6">
-                <Link className="bg-blue-500 px-6 text-white hover:bg-blue-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" to="/">Retour</Link>
-                <h1 className="text-2xl font-medium text-center">{interlocutorUsername}</h1>
-            </div>
-            {
-                isLoading || !interlocutor ? (
-                    <div className="flex flex-col h-full gap-6">
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
+        <PageContainer>
+            <div className="fixed inset-x-0 top-[84px] z-20 max-w-7xl mx-auto">
+                <div className="flex">
+                    <div className="flex items-center gap-6 p-2 pe-4 rounded-full backdrop-blur-sm">
+                            <Button variant="secondary" className="rounded-full size-12 flex items-center justify-center relative">
+                                <Link to="/" className="absolute inset-0" />
+                                <ArrowLeftIcon className="size-8" />
+                            </Button>
+                        <div className="flex items-center gap-2 text-gray-800">
+                            <UserCircleIcon className="size-12" />
+                            <span className="text-2xl lg:text-3xl font-medium">{interlocutorUsername}</span>
+                        </div>
                     </div>
-                ) : (
-                    conversationId && (
-                        <Chat interlocutor={interlocutor} initialMessages={messages} conversationId={conversationId} />
+                </div>
+            </div>
+            <PageContent className="pt-[100px] pb-[100px] w-full md:w-2xl mx-auto">
+                {
+                    isLoading || !interlocutor ? (
+                        <div className="flex flex-col gap-5">
+                            {
+                                Array.from({ length: 6 }).map((_, index) => (
+                                    <div key={index} className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8 w-150 h-18" />
+                                ))
+                            }
+                        </div>
+                    ) : (
+                        conversationId && (
+                            <Chat interlocutor={interlocutor} initialMessages={messages} conversationId={conversationId} />
+                        )
                     )
-                )
-            }
-        </div>
+                }
+            </PageContent>
+        </PageContainer>
     )
 }

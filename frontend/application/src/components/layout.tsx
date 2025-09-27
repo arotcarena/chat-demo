@@ -5,9 +5,9 @@ import { AuthWrapper } from './auth-wrapper'
 export const Layout = () => {
   return (
     <AuthWrapper>
-        <div className="h-screen flex flex-col overflow-hidden">
+        <div className="h-screen flex flex-col">
             <Header className="flex-none" />
-            <main className="grow">
+            <main className="grow pt-[64px]">
                 <Outlet />
             </main>
         </div>

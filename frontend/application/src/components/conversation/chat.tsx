@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { socket } from '../../main'
 import { useAuthMe } from "../../jotai/atoms";
 import type { Message, User } from "../../types";
+import { MessageInput } from "../ui/message-input";
+import { ChatMessage } from "../ui/chat-message";
 
 type Props = {
   interlocutor: User;
@@ -16,7 +18,6 @@ export const Chat = ({
 }: Props) => {
   const me = useAuthMe();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [inputMessage, setInputMessage] = useState<string>('');
 
   useEffect(() => {
     for (const initMessage of initialMessages) {
@@ -39,15 +40,13 @@ export const Chat = ({
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (value: string) => {
     socket.emit('submit_message', {
-      content: inputMessage,
+      content: value,
       sender_id: me.id,
       receiver_id: interlocutor.id,
       conversation_id: conversationId,
     }, conversationId);
-    setInputMessage('');
   };
 
   // scroll to bottom when new messages are added
@@ -59,29 +58,18 @@ export const Chat = ({
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
-      <ul className="mt-5 px-12 flex flex-col gap-6 overflow-y-auto" ref={ref}>
+    <>
+      <ul className="flex flex-col gap-5" ref={ref}>
         {
           messages.map((message: Message) => (
-            <li
+            <ChatMessage  
               key={message.id}
-              className={'px-4 py-3 rounded-md w-60' + (message.sender_id === me.id ? ' self-end' : ' self-start') + (message.sender_id === me.id ? ' bg-blue-500 text-white' : ' bg-green-500')}
-            >
-              <div>{message.content}</div>
-              <div>{new Date(message.created_at).toLocaleString()}</div>
-            </li>
+              message={message}
+            />
           ))
         }
       </ul>
-      <div className="grow"></div>
-      <div className="mt-auto flex-none p-3">
-        <form onSubmit={handleSubmit}>
-          <div className="flex gap-1">
-            <input className="grow h-12 border border-gray-300 rounded-md p-2" type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} />
-            <button className="h-12 px-6 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 transition-colors duration-300" type="submit">Envoyer</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <MessageInput onSubmit={handleSubmit} />
+    </>
   )
 }

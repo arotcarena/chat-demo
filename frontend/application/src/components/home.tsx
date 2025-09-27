@@ -12,7 +12,7 @@ import { PageContainer } from "./ui/page-container";
 import { PageHeader } from "./ui/page-header";
 import { PageTitle } from "./ui/page-title";
 import { PageContent } from "./ui/page-content";
-import { InterlocutorCardSkeleton } from "./ui/skeleton/interlocutor-card-skeleton";
+import { InterlocutorCardSkeleton } from "./ui/skeletons/interlocutor-card-skeleton";
 
 export const Home = () => {
   const me = useAuthMe();
