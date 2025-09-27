@@ -10,7 +10,7 @@ export const ChatMessageSkeleton = ({
 }: Props) => {
     return (
         <Skeleton className={cn(
-            'w-80 h-32',
+            'w-80 h-22',
             position === 'end' ? ' self-end' : ' self-start',
         )} />
     );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { socket } from '../../main'
 import { useAuthMe } from "../../jotai/atoms";
 import type { Message, User } from "../../types";
@@ -18,6 +18,11 @@ export const Chat = ({
 }: Props) => {
   const me = useAuthMe();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
     for (const initMessage of initialMessages) {
@@ -33,6 +38,8 @@ export const Chat = ({
       if (message.sender_id !== me.id) {
         socket.emit('mark_as_read', message.id);
       }
+      // Scroll to bottom when a new message arrives
+      setTimeout(scrollToBottom, 100);
     });
 
     return () => {
@@ -47,6 +54,8 @@ export const Chat = ({
       receiver_id: interlocutor.id,
       conversation_id: conversationId,
     }, conversationId);
+    // Scroll to bottom when sending a message
+    setTimeout(scrollToBottom, 100);
   };
 
   return (
@@ -60,6 +69,7 @@ export const Chat = ({
             />
           ))
         }
+        <div ref={messagesEndRef} />
       </ul>
       <MessageInput onSubmit={handleSubmit} />
     </>
