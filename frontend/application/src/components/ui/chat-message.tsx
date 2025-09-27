@@ -14,7 +14,7 @@ export const ChatMessage = ({
     return (
         <li
             className={cn(
-                'px-4 py-3 rounded-md w-60 shadow-xs',
+                'px-4 py-3 rounded-md min-w-60 max-w-90 shadow-xs',
                 message.sender_id === me.id ? ' self-end' : ' self-start',
                 message.sender_id === me.id ? ' bg-rose-500 text-white' : ' bg-white border border-gray-100'
             )}

@@ -11,6 +11,7 @@ import { PageContent } from "../ui/page-content";
 import { ArrowLeftIcon, UserCircleIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { useState } from "react";
+import { ChatMessageSkeleton } from "../ui/skeletons/chat-message-skeleton";
 
 type Props = {
     interlocutorUsername: string;
@@ -60,7 +61,10 @@ export const Conversation = ({
                         <div className="flex flex-col gap-5">
                             {
                                 Array.from({ length: 6 }).map((_, index) => (
-                                    <div key={index} className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8 w-150 h-18" />
+                                    <ChatMessageSkeleton
+                                        key={index}
+                                        position={index % 2 === 0 ? 'start' : 'end'}
+                                    />
                                 ))
                             }
                         </div>
