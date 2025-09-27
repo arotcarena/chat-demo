@@ -55,7 +55,7 @@ export const Conversation = ({
                     </div>
                 </div>
             </div>
-            <PageContent className="pt-[100px] pb-[100px] w-full md:w-2xl mx-auto">
+            <PageContent className="pt-[100px] pb-[140px] w-full md:w-2xl mx-auto">
                 {
                     isLoading || !interlocutor ? (
                         <div className="flex flex-col gap-5">

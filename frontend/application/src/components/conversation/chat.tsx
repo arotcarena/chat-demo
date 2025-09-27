@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from '../../main'
 import { useAuthMe } from "../../jotai/atoms";
 import type { Message, User } from "../../types";
@@ -49,17 +49,9 @@ export const Chat = ({
     }, conversationId);
   };
 
-  // scroll to bottom when new messages are added
-  const ref = useRef<HTMLUListElement>(null);
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.scrollTop = ref.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
     <>
-      <ul className="flex flex-col gap-5" ref={ref}>
+      <ul className="flex flex-col gap-5">
         {
           messages.map((message: Message) => (
             <ChatMessage  

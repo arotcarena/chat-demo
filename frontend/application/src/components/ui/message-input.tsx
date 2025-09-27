@@ -13,7 +13,8 @@ export const MessageInput = ({
         setValue(e.target.value);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         onSubmit(value);
         setValue('');
     };
