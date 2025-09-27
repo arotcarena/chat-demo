@@ -1,5 +1,5 @@
+import type { User } from "@/types";
 import { atom, useAtomValue } from "jotai"
-import type { User } from "../hooks/useGetMe"
 
 export const meAtom = atom<User | null | false>(null)
 
@@ -10,3 +10,5 @@ export const useAuthMe = (): User => {
     }
     return me;
 }
+
+export const lastUsernameAtom = atom<string | null>(null);

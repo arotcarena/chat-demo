@@ -1,12 +1,16 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AlertCircleIcon } from "lucide-react";
+import { postLogin } from "@/apiQueries/authQueries";
+import { useMutation } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { lastUsernameAtom } from "@/jotai/atoms";
 
 const schema = z.object({
   username: z.string(),
@@ -18,35 +22,29 @@ type LoginProps = {
 };
 
 export const Login = ({ onLoginSuccess }: LoginProps) => {
+  const navigate = useNavigate()
+  const lastUsername = useAtomValue(lastUsernameAtom);
 
   const { register, handleSubmit } = useForm<z.infer<typeof schema>>({
+    defaultValues: {
+      username: lastUsername || '',
+      password: '',
+    },
     resolver: zodResolver(schema)
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const onSubmit = async (formData: z.infer<typeof schema>) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(import.meta.env.VITE_API_URL + '/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-      const data = await response.json();
-      if (data.token) {
-        localStorage.setItem('auth-token', data.token);
-        onLoginSuccess?.();
-      } else {
-        throw new Error('error');
-      }
-    } catch (e) {
-      setError('Identifiants invalides');
+  const {mutate, isPending, error} = useMutation({
+    mutationFn: postLogin,
+    onSuccess: (data: {token: string}) => {
+      localStorage.setItem('auth-token', data.token);
+      onLoginSuccess?.();
+      setTimeout(() => {
+        navigate({ to: '/' })
+      }, 100);
     }
-    setIsLoading(false);
-  }
+  });
+
+  const onSubmit = async (formData: z.infer<typeof schema>) => mutate(formData);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -59,14 +57,16 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex items-center gap-1 text-destructive text-sm mb-2">
             {
               error && (
-                <div className="flex items-center gap-1 text-destructive text-sm mb-2 -mt-2">
+                <>
                   <AlertCircleIcon className="size-4" />
-                  <span>{error}</span>
-                </div>
+                  <span>Identifiants invalides</span>
+                </>
               )
             }
+            </div>
             <Input 
               type="text" 
               placeholder="Nom d'utilisateur"
@@ -79,14 +79,18 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
               className="my-1"
               {...register("password")}
             />
+            <Link to="/sign-up" className="text-sm text-muted-foreground ms-1 underline mt-4 block">
+              M'inscrire
+            </Link>
           </CardContent>
           <CardFooter className="flex-col gap-2">
             <Button 
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
+              className={cn('transition-all duration-300', isPending && 'opacity-50 animate-pulse')}
             >
               {
-                isLoading ? 'Connexion...' : 'Se connecter'
+                isPending ? 'Connexion...' : 'Se connecter'
               }
             </Button>
           </CardFooter>

@@ -39,6 +39,29 @@ router.post('/login', async (req: LoginRequest, res: Response) => {
   return res.json({ token });
 });
 
+router.post('/signup', async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+
+  const hashedPassword = await hashPassword(password);
+
+  if (typeof username !== 'string' || typeof password !== 'string' || password.length < 6 || username.length < 3 || username.length > 200 || password.length > 200) {
+    return res.status(400).json({ error: 'Formulaire invalide' });
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: { username },
+  });
+  if (existingUser) {
+    return res.status(400).json({ error: 'Le nom d\'utilisateur existe déjà' });
+  }
+
+  const user = await prisma.user.create({
+    data: { username, password: hashedPassword },
+  });
+
+  return res.json(user);
+});
+
 router.get('/me', async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
