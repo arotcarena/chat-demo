@@ -32,14 +32,14 @@ export const Conversation = ({
     const isLoading = isLoadingInterlocutor || isLoadingMessages;
 
     return (
-        <div className="h-full py-12">
-            <div className="flex gap-12">
+        <div className="h-full flex flex-col">
+            <div className="flex-none flex gap-12 py-6">
                 <Link className="bg-blue-500 px-6 text-white hover:bg-blue-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" to="/">Retour</Link>
                 <h1 className="text-2xl font-medium text-center">{interlocutorUsername}</h1>
             </div>
             {
                 isLoading || !interlocutor ? (
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col h-full gap-6">
                         <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
                         <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
                         <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />

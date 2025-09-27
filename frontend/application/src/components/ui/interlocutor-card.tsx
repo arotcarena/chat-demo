@@ -1,4 +1,6 @@
+import { UserCircleIcon } from "lucide-react";
 import type { User } from "../../types";
+import { Card, CardContent } from "./card";
 
 type Props = {
     interlocutor: User;
@@ -10,8 +12,11 @@ export const InterlocutorCard = ({
     countUnread,
 }: Props) => {
     return (
-        <div className="bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-md cursor-pointer block">
-            {interlocutor.username} {countUnread > 0 && <span className="text-red-500">{countUnread}</span>}
-        </div>
+        <Card className="w-38 sm:w-42 hover:shadow-md group transition-all duration-300">
+            <CardContent className="flex flex-col items-center gap-2">
+                <UserCircleIcon className="size-10 text-rose-500 group-hover:scale-116 transition-all duration-300" />
+                <div className="text-lg font-medium group-hover:text-rose-500 transition-all duration-300">{interlocutor.username}</div>
+            </CardContent>
+        </Card>
     )
 };
