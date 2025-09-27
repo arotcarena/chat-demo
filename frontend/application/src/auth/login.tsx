@@ -1,7 +1,12 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { AlertCircleIcon } from "lucide-react";
 
 const schema = z.object({
   username: z.string(),
@@ -45,45 +50,48 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-normal text-gray-800 text-center mb-8">
-          Connexion
-        </h1>
-
-        {
-          error && (
-            <div className="text-red-500 mb-4">
-              {error}
-            </div>
-          )
-        }
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <input 
-            type="text" 
-            placeholder="Nom d'utilisateur" 
-            {...register("username")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-
-          <input 
-            type="password" 
-            placeholder="Mot de passe" 
-            {...register("password")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-
-          <button 
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200 mt-2"
-          >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+       <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-center">Connexion</CardTitle>
+            <CardDescription>
+              Entrez vos identifiants ci-dessous pour vous connecter au chat
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             {
-              isLoading ? 'Connexion...' : 'Se connecter'
+              error && (
+                <div className="flex items-center gap-1 text-destructive text-sm mb-2 -mt-2">
+                  <AlertCircleIcon className="size-4" />
+                  <span>{error}</span>
+                </div>
+              )
             }
-          </button>
-        </form>
-      </div>
+            <Input 
+              type="text" 
+              placeholder="Nom d'utilisateur"
+              className="my-1"
+              {...register("username")}
+            />
+            <Input 
+              type="password" 
+              placeholder="Mot de passe"
+              className="my-1"
+              {...register("password")}
+            />
+          </CardContent>
+          <CardFooter className="flex-col gap-2">
+            <Button 
+              type="submit"
+              disabled={isLoading}
+            >
+              {
+                isLoading ? 'Connexion...' : 'Se connecter'
+              }
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
     </div>
   );
 };

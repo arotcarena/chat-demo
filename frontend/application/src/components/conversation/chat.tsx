@@ -27,11 +27,6 @@ export const Chat = ({
   }, [initialMessages]);
 
   useEffect(() => {
-    // Logs de connexion
-    socket.on('connect', () => {
-      console.log('✅ Connecté au serveur Socket.IO');
-    });
-
     socket.on('message_' + conversationId, (message) => {
       setMessages(messages => [...messages, message]);
       if (message.sender_id !== me.id) {
@@ -40,7 +35,6 @@ export const Chat = ({
     });
 
     return () => {
-      socket.off('connect');
       socket.off('message_' + conversationId);
     };
   }, []);

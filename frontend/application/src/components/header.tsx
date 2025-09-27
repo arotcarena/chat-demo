@@ -22,20 +22,6 @@ export const Header = () => {
                     </Link>
                     </div>
                     <div className="flex items-center space-x-4">
-                    <Link 
-                        to="/" 
-                        className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                        activeProps={{ className: "bg-gray-100 text-gray-900" }}
-                    >
-                        Accueil
-                    </Link>
-                    <Link 
-                        to="/about" 
-                        className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                        activeProps={{ className: "bg-gray-100 text-gray-900" }}
-                    >
-                        À propos
-                    </Link>
                     {me && (
                         <>
                             <span className="font-bold">{me.username}</span>

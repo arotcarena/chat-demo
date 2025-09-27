@@ -48,7 +48,7 @@ export const Home = () => {
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-900">Bienvenue, {me.username} !</h1>
         </div>
-        <h1 className="my-6 text-2xl font-medium">Choisissez un utilisateur pour commencer une conversation</h1>
+        <h1 className="my-6 text-2xl font-medium">Avec qui voulez-vous parler ?</h1>
         {
             isLoading ? (
                 <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse">to do : skeleton</div>
@@ -56,6 +56,7 @@ export const Home = () => {
                 <div className="flex flex-col gap-2">
                   {
                     users.map((user: User) => (
+                      user.id !== me.id && (
                         <Link
                           key={user.id}
                           to={`/conversation/${user.username}` as string}
@@ -65,6 +66,7 @@ export const Home = () => {
                               countUnread={countUnreadByInterlocutor?.[user.id] || 0}
                             />
                         </Link>
+                      )
                     ))
                   }
                 </div>
