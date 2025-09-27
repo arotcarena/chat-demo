@@ -52,6 +52,7 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
        <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle className="text-center">Connexion</CardTitle>
+            <h1 className="text-center text-2xl lg:text-3xl font-bold text-rose-500 my-4">ChatDemo</h1>
             <CardDescription>
               Entrez vos identifiants ci-dessous pour vous connecter au chat
             </CardDescription>

@@ -54,6 +54,7 @@ export const SignUp = () => {
                 Connexion
             </Link>
             <CardTitle className="text-center">Inscription</CardTitle>
+            <h1 className="text-center text-2xl lg:text-3xl font-bold text-rose-500 my-4">ChatDemo</h1>
             <CardDescription>
               Créez votre compte pour accéder au chat
             </CardDescription>
