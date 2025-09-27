@@ -3,6 +3,10 @@ import { useAuthMe } from "../jotai/atoms";
 import { Link } from "@tanstack/react-router";
 import type { User } from "../types";
 import { useQuery } from "@tanstack/react-query";
+import { getCountUnreadByInterlocutor } from "../apiQueries/messageQueries";
+import { InterlocutorCard } from "./ui/interlocutor-card";
+import { useEffect, useState } from "react";
+import { socket } from "../main";
 
 export const Home = () => {
   const me = useAuthMe();
@@ -12,6 +16,31 @@ export const Home = () => {
     queryFn: getUsers,
     initialData: [],
   });
+
+  // affichage du nombre de messages non lus par interlocuteur
+  const [countUnreadByInterlocutor, setCountUnreadByInterlocutor] = useState<{[interlocutorId: number]: number}>({});
+  useQuery({
+    queryKey: ['countUnreadByInterlocutor', me.id],
+    queryFn: async () => {
+      const responseData = await getCountUnreadByInterlocutor(me.id);
+      setCountUnreadByInterlocutor(responseData);
+      return responseData;
+    },
+    initialData: null,
+  });
+
+  useEffect(() => {
+    socket.on('unread_receiver_' + me.id, (interlocutorId: number) => {
+      setCountUnreadByInterlocutor((countUnreadByInterlocutor: {[interlocutorId: number]: number}) => ({
+        ...countUnreadByInterlocutor,
+        [interlocutorId]: (countUnreadByInterlocutor[interlocutorId] || 0) + 1,
+      }));
+    });
+
+    return () => {
+      socket.off('unread_receiver_' + me.id);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full gap-2">
@@ -29,10 +58,12 @@ export const Home = () => {
                     users.map((user: User) => (
                         <Link
                           key={user.id}
-                          className="bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-md cursor-pointer block"
                           to={`/conversation/${user.username}` as string}
                         >
-                            {user.username}
+                            <InterlocutorCard
+                              interlocutor={user}
+                              countUnread={countUnreadByInterlocutor?.[user.id] || 0}
+                            />
                         </Link>
                     ))
                   }

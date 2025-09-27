@@ -20,6 +20,7 @@ export const AuthWrapper = ({
           id: response.userId,
           username: response.username
         });
+        return response;
       } catch (e) {
         setMe(false);
         navigate({ to: '/login' });

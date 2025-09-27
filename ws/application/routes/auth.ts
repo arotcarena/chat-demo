@@ -15,7 +15,6 @@ type LoginRequest = Request<unknown, unknown, LoginBody>;
 const router: Router = express.Router();
 
 router.post('/login', async (req: LoginRequest, res: Response) => {
-  console.log(req.body);
   const { username, password } = req.body;
 
   if (typeof username !== 'string' || typeof password !== 'string') {

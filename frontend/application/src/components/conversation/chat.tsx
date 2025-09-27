@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from '../../main'
-import type { User } from "../../hooks/useGetMe";
-import type { Message } from ".";
 import { useAuthMe } from "../../jotai/atoms";
+import type { Message, User } from "../../types";
 
 type Props = {
   interlocutor: User;
@@ -20,6 +19,14 @@ export const Chat = ({
   const [inputMessage, setInputMessage] = useState<string>('');
 
   useEffect(() => {
+    for (const initMessage of initialMessages) {
+      if (initMessage.status === 'unread' && initMessage.sender_id !== me.id) {
+        socket.emit('mark_as_read', initMessage.id);
+      }
+    }
+  }, [initialMessages]);
+
+  useEffect(() => {
     // Logs de connexion
     socket.on('connect', () => {
       console.log('✅ Connecté au serveur Socket.IO');
@@ -27,6 +34,9 @@ export const Chat = ({
 
     socket.on('message_' + conversationId, (message) => {
       setMessages(messages => [...messages, message]);
+      if (message.sender_id !== me.id) {
+        socket.emit('mark_as_read', message.id);
+      }
     });
 
     return () => {

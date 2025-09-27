@@ -9,24 +9,18 @@ type Props = {
     interlocutorUsername: string;
 }
 
-export type Message = {
-    id: number;
-    content: string;
-    created_at: string;
-    sender_id: number;
-    receiver_id: number;
-};
-
 export const Conversation = ({
     interlocutorUsername,
 }: Props) => {
     const me = useAuthMe();
 
+    // on récupère l'interlocuteur
     const { data: interlocutor, isLoading: isLoadingInterlocutor } = useQuery({
         queryKey: ['user', interlocutorUsername],
         queryFn: () => getUserByUsername(interlocutorUsername),
     });
 
+    // puis les messages de la conversation liée à l'interlocuteur
     const { data: messagesData, isLoading: isLoadingMessages } = useQuery({
         queryKey: ['messages', me.id, interlocutor?.id],
         queryFn: () => getMessages(me.id, interlocutor!.id),
