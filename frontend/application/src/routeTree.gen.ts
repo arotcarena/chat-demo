@@ -9,12 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as LayoutAboutRouteImport } from './routes/_layout/about'
 import { Route as LayoutConversationUsernameRouteImport } from './routes/_layout/conversation/$username'
 
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -29,11 +34,6 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAboutRoute = LayoutAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutConversationUsernameRoute =
   LayoutConversationUsernameRouteImport.update({
     id: '/conversation/$username',
@@ -43,13 +43,13 @@ const LayoutConversationUsernameRoute =
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
-  '/about': typeof LayoutAboutRoute
+  '/sign-up': typeof SignUpRoute
   '/': typeof LayoutIndexRoute
   '/conversation/$username': typeof LayoutConversationUsernameRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/about': typeof LayoutAboutRoute
+  '/sign-up': typeof SignUpRoute
   '/': typeof LayoutIndexRoute
   '/conversation/$username': typeof LayoutConversationUsernameRoute
 }
@@ -57,20 +57,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
-  '/_layout/about': typeof LayoutAboutRoute
+  '/sign-up': typeof SignUpRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/conversation/$username': typeof LayoutConversationUsernameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/login' | '/about' | '/' | '/conversation/$username'
+  fullPaths: '/login' | '/sign-up' | '/' | '/conversation/$username'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/about' | '/' | '/conversation/$username'
+  to: '/login' | '/sign-up' | '/' | '/conversation/$username'
   id:
     | '__root__'
     | '/_layout'
     | '/login'
-    | '/_layout/about'
+    | '/sign-up'
     | '/_layout/'
     | '/_layout/conversation/$username'
   fileRoutesById: FileRoutesById
@@ -78,10 +78,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SignUpRoute: typeof SignUpRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -103,13 +111,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/about': {
-      id: '/_layout/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof LayoutAboutRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/conversation/$username': {
       id: '/_layout/conversation/$username'
       path: '/conversation/$username'
@@ -121,13 +122,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface LayoutRouteChildren {
-  LayoutAboutRoute: typeof LayoutAboutRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutConversationUsernameRoute: typeof LayoutConversationUsernameRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAboutRoute: LayoutAboutRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutConversationUsernameRoute: LayoutConversationUsernameRoute,
 }
@@ -138,6 +137,7 @@ const LayoutRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   LoginRoute: LoginRoute,
+  SignUpRoute: SignUpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

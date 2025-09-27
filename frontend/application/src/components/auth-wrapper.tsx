@@ -1,22 +1,37 @@
 import { useNavigate } from "@tanstack/react-router"
-import { useGetMe } from "../hooks/useGetMe"
-import { useEffect, type PropsWithChildren } from "react"
+import { type PropsWithChildren } from "react"
+import { useAtom } from "jotai";
+import { meAtom } from "../jotai/atoms";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../apiQueries/authQueries";
 
 export const AuthWrapper = ({
     children,
 }: PropsWithChildren) => {
-    const me = useGetMe()
-    const navigate = useNavigate()
+  const navigate = useNavigate()
+  const [me, setMe] = useAtom(meAtom);
 
-    useEffect(() => {
-      if (me === false) {
-          navigate({ to: '/login' })
+  useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      try {
+        const response = await getMe();
+        setMe({
+          id: response.userId,
+          username: response.username
+        });
+        return response;
+      } catch (e) {
+        setMe(false);
+        navigate({ to: '/login' });
       }
-    }, [me, navigate])
+    },
+    initialData: null,
+  });
 
-    if (!me) {
-      return null
-    }
+  if (!me) {
+    return null
+  }
 
-    return children
+  return children
 }

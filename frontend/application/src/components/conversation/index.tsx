@@ -1,75 +1,80 @@
-import { useEffect, useState } from "react";
 import { Chat } from "./chat";
 import { Link } from "@tanstack/react-router";
-import type { User } from "../../hooks/useGetMe";
 import { useAuthMe } from "../../jotai/atoms";
+import { useQuery } from "@tanstack/react-query";
+import { getUserByUsername } from "../../apiQueries/userQueries";
+import { getMessages } from "../../apiQueries/messageQueries";
+import { PageContainer } from "../ui/page-container";
+import { PageHeader } from "../ui/page-header";
+import { PageTitle } from "../ui/page-title";
+import { PageContent } from "../ui/page-content";
+import { ArrowLeftIcon, UserCircleIcon } from "lucide-react";
+import { Button } from "../ui/button";
+import { useState } from "react";
+import { ChatMessageSkeleton } from "../ui/skeletons/chat-message-skeleton";
 
 type Props = {
     interlocutorUsername: string;
 }
-
-export type Message = {
-    id: number;
-    content: string;
-    created_at: string;
-    sender_id: number;
-    receiver_id: number;
-};
 
 export const Conversation = ({
     interlocutorUsername,
 }: Props) => {
     const me = useAuthMe();
 
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [conversationId, setConversationId] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [interlocutor, setInterlocutor] = useState<User | null>(null);
+    // on récupère l'interlocuteur
+    const { data: interlocutor, isLoading: isLoadingInterlocutor } = useQuery({
+        queryKey: ['user', interlocutorUsername],
+        queryFn: () => getUserByUsername(interlocutorUsername),
+    });
 
-    useEffect(() => {
-        const fetchInfos = async () => {
-            setIsLoading(true);
-            try {
-                const interlocutorResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${interlocutorUsername}`);
-                const interlocutorData = await interlocutorResponse.json();
-                setInterlocutor(interlocutorData);
+    // puis les messages de la conversation liée à l'interlocuteur
+    const { data: messagesData, isLoading: isLoadingMessages } = useQuery({
+        queryKey: ['messages', me.id, interlocutor?.id],
+        queryFn: () => getMessages(me.id, interlocutor!.id),
+        enabled: !!interlocutor,
+    });
 
-                const messagesResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/messages?first_user_id=${me.id}&second_user_id=${interlocutorData.id}`);
-                const messagesData = await messagesResponse.json();
-                setMessages(messagesData.messages);
-                if (conversationId === null) {
-                    setConversationId(messagesData.conversation_id);
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchInfos();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const messages = messagesData?.messages || [];
+    const conversationId = messagesData?.conversation_id || null;
+    const isLoading = isLoadingInterlocutor || isLoadingMessages;
 
     return (
-        <div className="h-full py-12">
-            <div className="flex gap-12">
-                <Link className="bg-blue-500 px-6 text-white hover:bg-blue-600 transition-colors duration-300 rounded-md p-2 cursor-pointer" to="/">Retour</Link>
-                <h1 className="text-2xl font-medium text-center">{interlocutor?.username}</h1>
-            </div>
-            {
-                isLoading || !interlocutor ? (
-                    <div className="flex flex-col gap-6">
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
-                        <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse h-8" />
+        <PageContainer>
+            <div className="fixed inset-x-0 top-[84px] z-20 max-w-7xl mx-auto">
+                <div className="flex">
+                    <div className="flex items-center gap-6 p-2 pe-4 rounded-full backdrop-blur-sm">
+                            <Button variant="secondary" className="rounded-full size-12 flex items-center justify-center relative">
+                                <Link to="/" className="absolute inset-0" />
+                                <ArrowLeftIcon className="size-8" />
+                            </Button>
+                        <div className="flex items-center gap-2 text-gray-800">
+                            <UserCircleIcon className="size-12" />
+                            <span className="text-2xl lg:text-3xl font-medium">{interlocutorUsername}</span>
+                        </div>
                     </div>
-                ) : (
-                    conversationId && (
-                        <Chat interlocutor={interlocutor} initialMessages={messages} conversationId={conversationId} />
+                </div>
+            </div>
+            <PageContent className="pt-[100px] pb-[140px] w-full md:w-2xl mx-auto">
+                {
+                    isLoading || !interlocutor ? (
+                        <div className="flex flex-col gap-5">
+                            {
+                                Array.from({ length: 6 }).map((_, index) => (
+                                    <ChatMessageSkeleton
+                                        key={index}
+                                        position={index % 2 === 0 ? 'start' : 'end'}
+                                    />
+                                ))
+                            }
+                        </div>
+                    ) : (
+                        conversationId && (
+                            <Chat interlocutor={interlocutor} initialMessages={messages} conversationId={conversationId} />
+                        )
                     )
-                )
-            }
-        </div>
+                }
+            </PageContent>
+        </PageContainer>
     )
 }

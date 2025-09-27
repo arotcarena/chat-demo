@@ -64,4 +64,24 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/count_unread_by_interlocutor/:receiver_id', async (req: Request, res: Response) => {
+  try {
+    const messages = await prisma.message.findMany({
+      where: { receiver_id: parseInt(req.params.receiver_id as string), status: 'unread' }
+    });
+    // on crée un tableau du nombre de messages non lus par interlocuteur
+    const countUnreadByInterlocutorId = [];
+    for (const message of messages) {
+      if (!countUnreadByInterlocutorId[message.sender_id]) {
+        countUnreadByInterlocutorId[message.sender_id] = 0;
+      }
+      countUnreadByInterlocutorId[message.sender_id]++;
+    }
+
+    res.json(countUnreadByInterlocutorId);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch unread messages' });
+  }
+});
+
 export default router;

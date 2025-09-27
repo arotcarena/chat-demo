@@ -67,15 +67,25 @@ io.on('connection', (socket) => {
           receiver_id: message.receiver_id,
           conversation_id: conversationId,
           created_at: new Date().toISOString(),
+          status: 'unread',
         }
       });
 
       // Émettre le message avec l'ID généré par la base de données
       io.emit('message_' + conversationId, createdMessage);
+      // On émet aussi une notif de message non lu au cas où le receiver n'est pas sur la conversation
+      io.emit('unread_receiver_' + message.receiver_id, message.sender_id);
     } catch (error) {
       console.error('Erreur lors de la création du message:', error);
       socket.emit('message_error', { error: 'Failed to save message' });
     }
+  });
+
+  socket.on('mark_as_read', async (messageId: number) => {
+    await prisma.message.update({
+      where: { id: messageId },
+      data: { status: 'read' }
+    });
   });
 
   socket.on('disconnect', () => {

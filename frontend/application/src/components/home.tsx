@@ -1,37 +1,85 @@
-import type { User } from "../hooks/useGetMe";
-import { useGetUsers } from "../hooks/useGetUsers";
+import { getUsers } from "../apiQueries/userQueries";
 import { useAuthMe } from "../jotai/atoms";
-import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import type { User } from "../types";
+import { useQuery } from "@tanstack/react-query";
+import { getCountUnreadByInterlocutor } from "../apiQueries/messageQueries";
+import { InterlocutorCard } from "./ui/interlocutor-card";
+import { useEffect, useState } from "react";
+import { socket } from "../main";
+import { Footer } from "./footer";
+import { PageContainer } from "./ui/page-container";
+import { PageHeader } from "./ui/page-header";
+import { PageTitle } from "./ui/page-title";
+import { PageContent } from "./ui/page-content";
+import { InterlocutorCardSkeleton } from "./ui/skeletons/interlocutor-card-skeleton";
 
 export const Home = () => {
   const me = useAuthMe();
-  const navigate = useNavigate();
 
-  const { users, isLoading } = useGetUsers();
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: getUsers,
+    initialData: [],
+  });
 
-  const handleSelectUser = (user: User) => {
-    navigate({ to: `/conversation/${user.username}` });
-  };
+  // affichage du nombre de messages non lus par interlocuteur
+  const [countUnreadByInterlocutor, setCountUnreadByInterlocutor] = useState<{[interlocutorId: number]: number}>({});
+  useQuery({
+    queryKey: ['countUnreadByInterlocutor', me.id],
+    queryFn: async () => {
+      const responseData = await getCountUnreadByInterlocutor(me.id);
+      setCountUnreadByInterlocutor(responseData);
+      return responseData;
+    },
+    initialData: null,
+  });
+
+  useEffect(() => {
+    socket.on('unread_receiver_' + me.id, (interlocutorId: number) => {
+      setCountUnreadByInterlocutor((countUnreadByInterlocutor: {[interlocutorId: number]: number}) => ({
+        ...countUnreadByInterlocutor,
+        [interlocutorId]: (countUnreadByInterlocutor[interlocutorId] || 0) + 1,
+      }));
+    });
+
+    return () => {
+      socket.off('unread_receiver_' + me.id);
+    };
+  }, []);
 
   return (
-    <div className="flex flex-col h-full gap-2">
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Bienvenue, {me.username}!</h1>
-        </div>
-        <h1 className="my-6 text-2xl font-medium">Choisissez un utilisateur pour commencer une conversation</h1>
-        {
+    <PageContainer>
+      <PageHeader className="text-center mb-8 lg:mb-12">
+        <PageTitle>Bienvenue, {me.username} !</PageTitle>
+        <h2 className="text-2xl font-medium mt-4 lg:mt-6">Avec qui voulez-vous parler ?</h2>
+      </PageHeader>
+      <PageContent>
+        <div className="flex flex-wrap items-start justify-center gap-4 sm:gap-6">
+          {
             isLoading ? (
-                <div className="bg-gray-100 px-4 py-3 rounded-md animate-pulse">to do : skeleton</div>
+              Array.from({ length: 10 }).map((_, index) => (
+                <InterlocutorCardSkeleton key={index} />
+              ))
             ) : (
-                users.map((user) => (
-                    <div key={user.id} className="bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-md cursor-pointer" onClick={() => handleSelectUser(user)}>
-                        {user.username}
-                    </div>
-                ))
+              users.map((user: User) => (
+                user.id !== me.id && (
+                  <Link
+                    key={user.id}
+                    to={`/conversation/${user.username}` as string}
+                  >
+                      <InterlocutorCard
+                        interlocutor={user}
+                        countUnread={countUnreadByInterlocutor?.[user.id] || 0}
+                      />
+                  </Link>
+                )
+              ))
             )
-        }
-      </div>
-    </div>
+          }
+        </div>
+      </PageContent>
+      <Footer />
+    </PageContainer>
   )
 }

@@ -4,57 +4,59 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AlertCircleIcon } from "lucide-react";
-import { postLogin } from "@/apiQueries/authQueries";
+import { AlertCircleIcon, ArrowLeftIcon } from "lucide-react";
+import { postSignUp } from "@/apiQueries/authQueries";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { useAtomValue } from "jotai";
+import { useSetAtom } from "jotai";
 import { lastUsernameAtom } from "@/jotai/atoms";
+import type { User } from "@/types";
 
 const schema = z.object({
-  username: z.string(),
-  password: z.string()
+  username: z.string().min(3, {message: "Le nom d'utilisateur doit contenir au moins 3 caractères"}).max(200, {message: "Le nom d'utilisateur ne doit pas dépasser 200 caractères"}),
+  password: z.string().min(6, {message: "Le mot de passe doit contenir au moins 6 caractères"}).max(200, {message: "Le mot de passe ne doit pas dépasser 200 caractères"}),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
-type LoginProps = {
-  onLoginSuccess?: () => void;
-};
-
-export const Login = ({ onLoginSuccess }: LoginProps) => {
+export const SignUp = () => {
   const navigate = useNavigate()
-  const lastUsername = useAtomValue(lastUsernameAtom);
+  const setLastUsername = useSetAtom(lastUsernameAtom);
 
-  const { register, handleSubmit } = useForm<z.infer<typeof schema>>({
-    defaultValues: {
-      username: lastUsername || '',
-      password: '',
-    },
+  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema)
   });
 
   const {mutate, isPending, error} = useMutation({
-    mutationFn: postLogin,
-    onSuccess: (data: {token: string}) => {
-      localStorage.setItem('auth-token', data.token);
-      onLoginSuccess?.();
-      setTimeout(() => {
-        navigate({ to: '/' })
-      }, 100);
+    mutationFn: postSignUp,
+    onSuccess: (user: User) => {
+        console.log('dans signup', user);
+        setLastUsername(user.username)
+        navigate({ to: '/login' })
     }
   });
 
-  const onSubmit = async (formData: z.infer<typeof schema>) => mutate(formData);
+  const onSubmit = async (formData: z.infer<typeof schema>) => {
+    const { confirmPassword, ...signUpData } = formData;
+    mutate(signUpData);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
        <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-center">Connexion</CardTitle>
+            <Link to="/login" className="text-sm text-muted-foreground flex items-center gap-0.5 mb-4">
+                <ArrowLeftIcon className="size-4" />
+                Connexion
+            </Link>
+            <CardTitle className="text-center">Inscription</CardTitle>
             <h1 className="text-center text-2xl lg:text-3xl font-bold text-rose-500 my-4">ChatDemo</h1>
             <CardDescription>
-              Entrez vos identifiants ci-dessous pour vous connecter au chat
+              Créez votre compte pour accéder au chat
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -63,7 +65,7 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
               error && (
                 <>
                   <AlertCircleIcon className="size-4" />
-                  <span>Identifiants invalides</span>
+                  <span>Erreur lors de l'inscription</span>
                 </>
               )
             }
@@ -80,9 +82,18 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
               className="my-1"
               {...register("password")}
             />
-            <Link to="/sign-up" className="text-sm text-muted-foreground ms-1 underline mt-4 block">
-              M'inscrire
-            </Link>
+            <Input 
+              type="password" 
+              placeholder="Confirmer le mot de passe"
+              className="my-1"
+              {...register("confirmPassword")}
+            />
+            {errors.confirmPassword && (
+              <div className="flex items-center gap-1 text-destructive text-sm">
+                <AlertCircleIcon className="size-4" />
+                <span>{errors.confirmPassword.message}</span>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex-col gap-2">
             <Button 
@@ -91,7 +102,7 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
               className={cn('transition-all duration-300', isPending && 'opacity-50 animate-pulse')}
             >
               {
-                isPending ? 'Connexion...' : 'Se connecter'
+                isPending ? 'Inscription...' : 'S\'inscrire'
               }
             </Button>
           </CardFooter>

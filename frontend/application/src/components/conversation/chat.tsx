@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { socket } from '../../main'
-import type { User } from "../../hooks/useGetMe";
-import type { Message } from ".";
 import { useAuthMe } from "../../jotai/atoms";
+import type { Message, User } from "../../types";
+import { MessageInput } from "../ui/message-input";
+import { ChatMessage } from "../ui/chat-message";
 
 type Props = {
   interlocutor: User;
@@ -17,67 +18,60 @@ export const Chat = ({
 }: Props) => {
   const me = useAuthMe();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [inputMessage, setInputMessage] = useState<string>('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
-    // Logs de connexion
-    socket.on('connect', () => {
-      console.log('✅ Connecté au serveur Socket.IO');
-    });
+    for (const initMessage of initialMessages) {
+      if (initMessage.status === 'unread' && initMessage.sender_id !== me.id) {
+        socket.emit('mark_as_read', initMessage.id);
+      }
+    }
+  }, [initialMessages]);
 
+  useEffect(() => {
     socket.on('message_' + conversationId, (message) => {
       setMessages(messages => [...messages, message]);
+      if (message.sender_id !== me.id) {
+        socket.emit('mark_as_read', message.id);
+      }
+      // Scroll to bottom when a new message arrives
+      setTimeout(scrollToBottom, 100);
     });
 
     return () => {
-      socket.off('connect');
       socket.off('message_' + conversationId);
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (value: string) => {
     socket.emit('submit_message', {
-      content: inputMessage,
+      content: value,
       sender_id: me.id,
       receiver_id: interlocutor.id,
       conversation_id: conversationId,
     }, conversationId);
-    setInputMessage('');
+    // Scroll to bottom when sending a message
+    setTimeout(scrollToBottom, 100);
   };
 
-  // scroll to bottom when new messages are added
-  const ref = useRef<HTMLUListElement>(null);
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.scrollTop = ref.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
-    <div className="flex flex-col h-full">
-      <ul className="mt-5 px-12 flex flex-col gap-6 overflow-y-auto" ref={ref}>
+    <>
+      <ul className="flex flex-col gap-5">
         {
           messages.map((message: Message) => (
-            <li
+            <ChatMessage  
               key={message.id}
-              className={'px-4 py-3 rounded-md w-60' + (message.sender_id === me.id ? ' self-end' : ' self-start') + (message.sender_id === me.id ? ' bg-blue-500 text-white' : ' bg-green-500')}
-            >
-              <div>{message.content}</div>
-              <div>{new Date(message.created_at).toLocaleString()}</div>
-            </li>
+              message={message}
+            />
           ))
         }
+        <div ref={messagesEndRef} />
       </ul>
-      <div className="grow"></div>
-      <div className="mt-auto flex-none p-3">
-        <form onSubmit={handleSubmit}>
-          <div className="flex gap-1">
-            <input className="grow h-12 border border-gray-300 rounded-md p-2" type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} />
-            <button className="h-12 px-6 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 transition-colors duration-300" type="submit">Envoyer</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <MessageInput onSubmit={handleSubmit} />
+    </>
   )
 }
